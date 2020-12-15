@@ -86,3 +86,36 @@ func (c *Client) XMLSign(p12, password, xml string, config *TSPConfig) (*XMLSign
 
 	return &reply, nil
 }
+
+// XMLSignWithSecurityHeader signs xml.
+//
+// See https://github.com/malikzh/NCANode/pull/71
+func (c *Client) XMLSignWithSecurityHeader(p12, password, xml string, config *TSPConfig) (*XMLSignResponse, error) {
+	if p12 == "" || password == "" || xml == "" {
+		return nil, ErrInvalidRequestBody
+	}
+
+	if config == nil {
+		config = &TSPConfig{}
+	}
+
+	body := apiRequest{
+		Version: c.version,
+		Method:  "XML.signWithSecurityHeader",
+		Params: xmlSignRequest{
+			P12:              p12,
+			Password:         password,
+			XML:              xml,
+			CreateTsp:        config.Enabled,
+			UseTsaPolicy:     config.Policy,
+			TSPHashAlgorithm: config.HashAlgorithm,
+		},
+	}
+
+	var reply XMLSignResponse
+	if err := c.call(body, &reply); err != nil {
+		return nil, err
+	}
+
+	return &reply, nil
+}
